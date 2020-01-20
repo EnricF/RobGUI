@@ -12,7 +12,7 @@
 #include "framework.h"
 #include "RobGUI.h"
 #include "Global_var.h"
-#include "ecmTest.h"
+
 
 //Thread related
 #include <strsafe.h>
@@ -23,21 +23,20 @@
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
+HINSTANCE hInst2;                                // current instance
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);//About Dialog
+INT_PTR CALLBACK	SelectLogFile(HWND, UINT, WPARAM, LPARAM);//Select log file "save as" dialog
 
 
-
-DWORD WINAPI MyThreadFunction(LPVOID lpParam);//Just for testing
-
-//extern "C" DWORD WINAPI emcThreadFunction(LPVOID lpParam);//MANDATORY/OPTIONAL AS "extern 'C'" here and on its HEADER file + compile "as default" option 
+//extern "C" DWORD WINAPI emcThreadFunction(LPVOID lpParam);//Optional "extern 'C'" declaration here. Mandatory on its HEADER file + compile "as default" VS project option 
 
 
-void ErrorHandler(LPTSTR lpszFunction);//Shows a MessageBox error on screen.
+void ErrorHandler(LPTSTR lpszFunction);//Shows a MessageBox error on screen if EMC thread fails on its creation.
 
 //EF mod: Avoid Wide-Characters used by main Windows function "wWinMain"
 // Choose "WinMain" so argv is now is One-byte-char
@@ -83,6 +82,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
 
 
 	//EF mod: ECM Thread
+	//link: https://docs.microsoft.com/en-us/windows/win32/procthread/creating-threads
 	HANDLE  hThread;
 	DWORD   dwThreadId;
 	PMYDATA pData;
@@ -91,8 +91,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
 	
 	pData->argc = __argc;
 	pData->argv = __argv;
-	
-	int a = NUMCOMMANDS;
+
 
 	hThread = CreateThread(
 		NULL,                   // default security attributes
@@ -193,6 +192,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             // Parse the menu selections:
             switch (wmId)
             {
+			case IDM_FILE_SELECTLOGFILE:
+
+				//DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+				DialogBox(hInst,MAKEINTRESOURCE(IDD_SELECTFILE), hWnd, SelectLogFile);
+				//TODO : modify DialogBox
+				
+				break;
             case IDM_ABOUT:
                 DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
                 break;
@@ -241,12 +247,29 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     return (INT_PTR)FALSE;
 }
 
+// Message handler for about box.
+INT_PTR CALLBACK SelectLogFile(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	UNREFERENCED_PARAMETER(lParam);
+	switch (message)
+	{
+	case WM_INITDIALOG:
+		return (INT_PTR)TRUE;
 
-DWORD WINAPI MyThreadFunction(LPVOID lpParam) {
-
-	return 0;
+	case WM_COMMAND:
+		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
+		{
+			EndDialog(hDlg, LOWORD(wParam));
+			return (INT_PTR)TRUE;
+		}
+		//TODO : Modify it
+		//APPCOMMAND_SAVE//Seems useful
+		break;
+	}
+	return (INT_PTR)FALSE;
 }
 
+//Thread creation error Handler. Shows a MessageBox
 void ErrorHandler(LPTSTR lpszFunction)
 {
 	// Retrieve the system error message for the last-error code.

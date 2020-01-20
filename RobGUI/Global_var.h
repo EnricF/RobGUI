@@ -20,11 +20,13 @@
 
 #define NUMCOMMANDS 2 //How many acyclic commands you want to send;
 
+//To pass command line execution arguments to a Windows Thread
 typedef struct MyData {
 	int argc;
 	char ** argv;
 } MYDATA, *PMYDATA;
 
+//EtherCAT command types, numerically identified
 typedef enum ethercatCommandTypes
 {
 	NOP = 0, APRD, APWR, APRW,
@@ -34,17 +36,15 @@ typedef enum ethercatCommandTypes
 	ARMW
 }ethercatCommandTypes;
 
+
 struct cmd
 {
 	ECM_SLAVE_ADDR			address;
 	uint16_t				numBytes;
 	ethercatCommandTypes	cmdType;
-	char *					Description;
+	const char *			Description;
 };
 
-
-
-/*
 static struct cmd const newCommands[] =
 {
 	//{Address_slave ADP (uint16_t), Address_slave ADO (uint16_t), numBytes, EtherCAT command type, Description}
@@ -62,7 +62,7 @@ static struct cmd const newCommands[] =
 	//{ 0x0000, 0x2030, sizeof(int32_t),	BRD,	"Reads 0x030 axis-1 (Actual Position - RO)"},
 	//{ 0x0000, 0x6064, sizeof(int32_t),	BRD,	"Reads 0x6064 (Position Actual Value - RO)"},
 	{ 0x0000, 0x2011, sizeof(uint16_t),	BRD,	"Reads 0x011 axis-1 (Status Word - RO)"},
-};*/
+};
 
 uint16_t	value		= 0;		//This is the value
 void		*pData		= &value;	//Pointer to the value
